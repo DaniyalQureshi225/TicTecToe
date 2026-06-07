@@ -8,6 +8,7 @@ import Animated, {
   withTiming,
   withSequence,
 } from 'react-native-reanimated';
+import SoundManager from '../utils/SoundManager';
 
 export default function SplashScreen({ navigation }) {
   const scale = useSharedValue(0);
@@ -16,6 +17,8 @@ export default function SplashScreen({ navigation }) {
   const subtitleOpacity = useSharedValue(0);
 
   useEffect(() => {
+    SoundManager.preloadAll();
+
     scale.value = withSequence(
       withSpring(0, { damping: 20 }),
       withSpring(1.2, { damping: 8 }),

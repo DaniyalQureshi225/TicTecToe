@@ -25,24 +25,22 @@ const SOUND_FILES = {
 };
 
 const TAP_DEBOUNCE_MS = 80;
-const FADE_DURATION_MS = 300;
-const FADE_STEPS = 10;
 
 class SoundManager {
-  static sounds = {};
   static enabled = true;
-  static volume = 0.3;
-  static bgVolume = 0.15;
-  static currentBgName = null;
+  static volume = 0.5;
+  static bgVolume = 0.3;
   static currentBgInstance = null;
+  static currentBgName = null;
   static appStateSubscription = null;
   static wasPlayingBeforeBackground = false;
+  static preloaded = {};
 
   static configure(enabled, volume) {
     this.enabled = enabled;
     if (volume !== undefined) {
       this.volume = volume;
-      this.bgVolume = volume * 0.5;
+      this.bgVolume = volume * 0.6;
       if (this.currentBgInstance) {
         try { this.currentBgInstance.setVolume(this.bgVolume); } catch (e) {}
       }
@@ -52,127 +50,51 @@ class SoundManager {
     }
   }
 
-  static isEnabled() {
-    return this.enabled;
+  static _soundPath(file) {
+    return Platform.OS === 'android' ? file.replace('.mp3', '') : file;
   }
 
-  static getSoundPath(file) {
-    if (Platform.OS === 'android') {
-      return file.replace('.mp3', '');
-    }
-    return file;
-  }
+  static playOneShot(name) {
+    if (!this.enabled || !Sound) return;
+    const file = SOUND_FILES[name];
+    if (!file) return;
 
-  static loadSound(name, file) {
-    if (this.sounds[name]) return;
-    if (!Sound) return;
-
-    const soundPath = this.getSoundPath(file);
-
-    this.sounds[name] = new Sound(
-      soundPath,
-      Sound.MAIN_BUNDLE,
-      error => {
-        if (error) {
-          this.sounds[name] = null;
-        }
-      },
-    );
-  }
-
-  static play(name) {
-    if (!this.enabled) return;
-
-    if (!this.sounds[name]) {
-      this.loadSound(name, SOUND_FILES[name]);
-      setTimeout(() => { this.play(name); }, 100);
-      return;
-    }
-
-    const instance = this.sounds[name];
-    if (!instance) return;
-
-    try {
-      instance.stop(() => {
-        instance.setCurrentTime(0);
-        instance.setVolume(this.volume);
-        instance.play(success => {
-          if (!success) {
-            instance.reset();
-          }
-        });
+    const path = this._soundPath(file);
+    const sfx = new Sound(path, Sound.MAIN_BUNDLE, error => {
+      if (error) return;
+      sfx.setVolume(this.volume);
+      sfx.play(success => {
+        sfx.release();
       });
-    } catch (e) {}
-  }
-
-  static _fadeVolume(from, to, duration, instance, callback) {
-    const steps = FADE_STEPS;
-    const stepDuration = duration / steps;
-    const diff = to - from;
-    let currentStep = 0;
-
-    const interval = setInterval(() => {
-      currentStep++;
-      const progress = currentStep / steps;
-      const vol = from + diff * progress;
-      try { instance.setVolume(Math.max(0, vol)); } catch (e) {}
-      if (currentStep >= steps) {
-        clearInterval(interval);
-        if (callback) callback();
-      }
-    }, stepDuration);
-  }
-
-  static fadeIn(instance, targetVolume, duration, callback) {
-    if (!Sound) return;
-    try { instance.setVolume(0); } catch (e) {}
-    this._fadeVolume(0, targetVolume, duration, instance, callback);
-  }
-
-  static fadeOutAndStop(instance, duration, callback) {
-    if (!Sound) { try { instance.release(); } catch(e) {} if (callback) callback(); return; }
-    const currentVol = this.bgVolume;
-    this._fadeVolume(currentVol, 0, duration, instance, () => {
-      try {
-        instance.stop();
-        instance.release();
-      } catch (e) {}
-      if (callback) callback();
     });
   }
 
   static playBackgroundMusic(track) {
-    if (!this.enabled) return;
+    if (!this.enabled || !Sound) return;
     if (this.currentBgName === track) return;
 
     this.stopBackgroundMusic();
 
     const file = SOUND_FILES[track];
-    if (!file || !Sound) return;
+    if (!file) return;
 
-    const soundPath = this.getSoundPath(file);
-
-    const bgMusic = new Sound(
-      soundPath,
-      Sound.MAIN_BUNDLE,
-      error => {
-        if (error) return;
-
-        bgMusic.setNumberOfLoops(-1);
-        bgMusic.play();
-        this.currentBgInstance = bgMusic;
-        this.currentBgName = track;
-
-        setTimeout(() => {
-          this.fadeIn(bgMusic, this.bgVolume, FADE_DURATION_MS);
-        }, 50);
-      },
-    );
+    const path = this._soundPath(file);
+    const bgMusic = new Sound(path, Sound.MAIN_BUNDLE, error => {
+      if (error) return;
+      bgMusic.setNumberOfLoops(-1);
+      bgMusic.setVolume(this.bgVolume);
+      bgMusic.play();
+      this.currentBgInstance = bgMusic;
+      this.currentBgName = track;
+    });
   }
 
   static stopBackgroundMusic() {
     if (this.currentBgInstance) {
-      this.fadeOutAndStop(this.currentBgInstance, FADE_DURATION_MS);
+      try {
+        this.currentBgInstance.stop();
+        this.currentBgInstance.release();
+      } catch (e) {}
       this.currentBgInstance = null;
       this.currentBgName = null;
     }
@@ -185,18 +107,14 @@ class SoundManager {
   }
 
   static resumeBackgroundMusic() {
-    if (!this.enabled) return;
-    if (this.currentBgInstance && this.currentBgName) {
-      try {
-        this.currentBgInstance.play();
-        this.fadeIn(this.currentBgInstance, this.bgVolume, FADE_DURATION_MS);
-      } catch (e) {}
-    }
+    if (!this.enabled || !this.currentBgInstance) return;
+    try {
+      this.currentBgInstance.play();
+    } catch (e) {}
   }
 
   static setupAppStateListener() {
     if (this.appStateSubscription) return;
-
     this.appStateSubscription = AppState.addEventListener('change', nextAppState => {
       if (nextAppState === 'active') {
         if (this.wasPlayingBeforeBackground) {
@@ -212,45 +130,26 @@ class SoundManager {
     });
   }
 
-  static removeAppStateListener() {
-    if (this.appStateSubscription) {
-      this.appStateSubscription.remove();
-      this.appStateSubscription = null;
-    }
-  }
-
   static preloadAll() {
     if (!Sound) return;
     Object.entries(SOUND_FILES).forEach(([name, file]) => {
-      if (!name.startsWith('bg')) {
-        this.loadSound(name, file);
-      }
+      if (name.startsWith('bg')) return;
+      const path = this._soundPath(file);
+      this.preloaded[name] = new Sound(path, Sound.MAIN_BUNDLE, () => {});
     });
   }
 
   static playTap() {
     const now = Date.now();
-    if (now - SoundManager._lastTapTime < TAP_DEBOUNCE_MS) return;
+    if (now - (SoundManager._lastTapTime || 0) < TAP_DEBOUNCE_MS) return;
     SoundManager._lastTapTime = now;
-    this.play('tap');
+    this.playOneShot('tap');
   }
 
-  static playWin() { this.play('win'); }
-  static playDraw() { this.play('draw'); }
-  static playError() { this.play('error'); }
-  static playButtonClick() { this.play('button'); }
-
-  static release(name) {
-    if (this.sounds[name]) {
-      try { this.sounds[name].release(); } catch (e) {}
-      delete this.sounds[name];
-    }
-  }
-
-  static releaseAll() {
-    this.stopBackgroundMusic();
-    Object.keys(this.sounds).forEach(key => this.release(key));
-  }
+  static playWin() { this.playOneShot('win'); }
+  static playDraw() { this.playOneShot('draw'); }
+  static playError() { this.playOneShot('error'); }
+  static playButtonClick() { this.playOneShot('button'); }
 }
 
 SoundManager._lastTapTime = 0;

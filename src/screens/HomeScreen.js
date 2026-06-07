@@ -44,10 +44,17 @@ function MenuItem({ title, onPress, color, delay, icon }) {
 export default function HomeScreen({ navigation }) {
   const dispatch = useDispatch();
   const soundEnabled = useSelector(state => state.sound.enabled);
+  const soundVolume = useSelector(state => state.sound.volume);
+
+  useEffect(() => {
+    SoundManager.configure(soundEnabled, soundVolume);
+  }, [soundEnabled, soundVolume]);
 
   useEffect(() => {
     SoundManager.setupAppStateListener();
-    SoundManager.playBackgroundMusic('bgHome');
+    if (soundEnabled) {
+      SoundManager.playBackgroundMusic('bgHome');
+    }
     return () => {
       SoundManager.stopBackgroundMusic();
     };
