@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
   bannerContainer: {
     position: 'absolute',
     bottom: 0,
-    left: 0,
+    left: 32,
     right: 0,
     alignItems: 'center',
   },

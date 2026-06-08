@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  Dimensions,
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -31,11 +30,7 @@ import { onGameFinished } from '../services/AdManager';
 import GameCell from '../components/GameCell';
 import AnimatedButton from '../components/AnimatedButton';
 
-const SCREEN_WIDTH = Dimensions.get('window').width;
-const BOARD_PADDING = 12;
 const CELL_GAP = 2;
-const BOARD_WIDTH = SCREEN_WIDTH - BOARD_PADDING * 2;
-const CELL_SIZE = Math.floor((BOARD_WIDTH - CELL_GAP * (BOARD_SIZE - 1)) / BOARD_SIZE);
 
 export default function GameScreen({ navigation }) {
   const dispatch = useDispatch();
@@ -209,23 +204,35 @@ export default function GameScreen({ navigation }) {
 
         <ScrollView
           contentContainerStyle={styles.boardContainer}
+          scrollEnabled={false} // Prevents scrolling since a 10x10 fits fully in portrait
           showsVerticalScrollIndicator={false}>
-          <View style={styles.board}>
-            {board.map((row, rowIdx) =>
-              row.map((cell, colIdx) => (
-                <GameCell
-                  key={`${rowIdx}-${colIdx}`}
-                  row={rowIdx}
-                  col={colIdx}
-                  value={cell}
-                  onPress={handleCellPress}
-                  isWinCell={winCells.some(([r, c]) => r === rowIdx && c === colIdx)}
-                  disabled={gameStatus !== GAME_STATUS.PLAYING}
-                  cellSize={CELL_SIZE}
-                />
-              )),
-            )}
+
+          <View style={styles.boardWrapper}>
+            <View style={styles.board}>
+              {board.map((row, rowIdx) => (
+                /* Explicit Row Wrapper forces exactly 10 blocks across, cleanly balancing the grid */
+                <View key={`row-${rowIdx}`} style={styles.boardRow}>
+                  {row.map((cell, colIdx) => (
+                    <View
+                      key={`${rowIdx}-${colIdx}`}
+                      style={[styles.cellWrapper, { padding: CELL_GAP }]}
+                    >
+                      <GameCell
+                        row={rowIdx}
+                        col={colIdx}
+                        value={cell}
+                        onPress={handleCellPress}
+                        isWinCell={winCells.some(([r, c]) => r === rowIdx && c === colIdx)}
+                        disabled={gameStatus !== GAME_STATUS.PLAYING}
+                        cellSize="100%"
+                      />
+                    </View>
+                  ))}
+                </View>
+              ))}
+            </View>
           </View>
+
         </ScrollView>
 
         <View style={styles.scoresRow}>
@@ -280,15 +287,33 @@ const styles = StyleSheet.create({
   turnEmoji: { fontSize: 24 },
   turnText: { fontSize: 16, fontWeight: '700', color: '#6C63FF' },
   turnSymbol: { fontSize: 16, fontWeight: '600', color: '#636E72' },
-  boardContainer: { alignItems: 'center', paddingVertical: 8 },
+
+  // Structured Grid System
+  boardContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 12
+  },
+  boardWrapper: {
+    width: '100%',
+    maxWidth: 480, // Keeps the layout perfect on larger tablets
+    aspectRatio: 1, // Ensures a clean, uniform box
+  },
   board: {
-    width: BOARD_WIDTH,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flex: 1,
     backgroundColor: '#DFE6E9',
     borderRadius: 8,
-    padding: CELL_GAP,
+    padding: 2,
   },
+  boardRow: {
+    flex: 1, // Equally breaks down the container height into 10 sections
+    flexDirection: 'row',
+  },
+  cellWrapper: {
+    flex: 1, // Equally breaks down the row width into 10 sections
+  },
+
   scoresRow: {
     flexDirection: 'row',
     justifyContent: 'space-evenly',

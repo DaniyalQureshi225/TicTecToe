@@ -15,7 +15,7 @@ try {
   // reanimated not available, fallback to plain TouchableOpacity
 }
 
-const PLAYER_COLORS = ['#FF6B6B', '#4ECDC4', '#FFE66D', '#A29BFE'];
+const PLAYER_COLORS = ['#FF6B6B', '#4ECDC4', '#fe07eaff', '#A29BFE'];
 const PLAYER_SYMBOLS = ['X', 'O', '△', '□'];
 
 export default function GameCell({
