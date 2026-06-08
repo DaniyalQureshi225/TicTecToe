@@ -10,7 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { toggleSound } from '../redux/soundSlice';
 import SoundManager from '../utils/SoundManager';
-import { AD_UNIT_ID_BANNER_HOME, BannerAd, BannerAdSize, isAdAvailable } from '../services/AdManager';
+import AppBannerAd from '../components/AppBannerAd';
 import AnimatedButton from '../components/AnimatedButton';
 
 function MenuItem({ title, onPress, color, delay, icon }) {
@@ -105,14 +105,7 @@ export default function HomeScreen({ navigation }) {
 
         <Text style={styles.footer}>🎯 Get 5 in a row to win!</Text>
 
-        {isAdAvailable() && BannerAd && (
-          <View style={styles.bannerContainer}>
-            <BannerAd
-              unitId={AD_UNIT_ID_BANNER_HOME}
-              size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
-            />
-          </View>
-        )}
+        <AppBannerAd style={styles.bannerContainer} />
       </View>
     </SafeAreaView>
   );

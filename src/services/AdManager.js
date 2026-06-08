@@ -116,6 +116,36 @@ export function isAdAvailable() {
   return nativeAdsAvailable;
 }
 
+export function showInterstitialAd(onDismiss) {
+  if (!nativeAdsAvailable) {
+    if (onDismiss) onDismiss();
+    return;
+  }
+
+  const interstitial = getInterstitial();
+
+  if (interstitial && interstitial.loaded) {
+    const unsubLoaded = interstitial.addAdEventListener(AdEventType.CLOSED, () => {
+      interstitialInstance = null;
+      interstitialLoadAttempted = false;
+      unsubLoaded();
+      unsubError();
+      if (onDismiss) onDismiss();
+    });
+    const unsubError = interstitial.addAdEventListener(AdEventType.ERROR, () => {
+      interstitialInstance = null;
+      interstitialLoadAttempted = false;
+      unsubLoaded();
+      unsubError();
+      if (onDismiss) onDismiss();
+    });
+    interstitial.show();
+  } else {
+    loadInterstitial();
+    setTimeout(() => showInterstitialAd(onDismiss), 1000);
+  }
+}
+
 export {
   AD_UNIT_ID_BANNER_HOME,
   AD_UNIT_ID_BANNER_LEADERBOARD,

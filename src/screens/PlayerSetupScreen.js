@@ -14,9 +14,11 @@ import { startGame } from '../redux/gameSlice';
 import { setLastGameMode } from '../redux/soundSlice';
 import { AVATARS } from '../constants/avatars';
 import SoundManager from '../utils/SoundManager';
+import { showInterstitialAd } from '../services/AdManager';
 import AvatarPicker from '../components/AvatarPicker';
 import PlayerCard from '../components/PlayerCard';
 import AnimatedButton from '../components/AnimatedButton';
+import AppBannerAd from '../components/AppBannerAd';
 
 export default function PlayerSetupScreen({ navigation }) {
   const dispatch = useDispatch();
@@ -57,7 +59,7 @@ export default function PlayerSetupScreen({ navigation }) {
     const isAIMode = gameMode === 1;
     dispatch(setLastGameMode(gameMode));
     dispatch(startGame({ playerCount, isAIMode }));
-    navigation.navigate('Game');
+    showInterstitialAd(() => navigation.navigate('Game'));
   }
 
   const canStart = gameMode === 1 || players.length >= 2;
@@ -159,6 +161,7 @@ export default function PlayerSetupScreen({ navigation }) {
           style={{ width: '100%', marginTop: 24 }}
         />
       </ScrollView>
+      <AppBannerAd />
     </SafeAreaView>
   );
 }

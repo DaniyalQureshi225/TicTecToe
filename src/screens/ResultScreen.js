@@ -6,8 +6,10 @@ import { GAME_STATUS } from '../constants/gameConfig';
 import { AVATARS } from '../constants/avatars';
 import { resetGame } from '../redux/gameSlice';
 import { startGame } from '../redux/gameSlice';
-import CelebrationOverlay from '../components/CelebrationOverlay';
 import AnimatedButton from '../components/AnimatedButton';
+import AppBannerAd from '../components/AppBannerAd';
+import CelebrationOverlay from '../components/CelebrationOverlay';
+import { showInterstitialAd } from '../services/AdManager';
 
 export default function ResultScreen({ navigation }) {
   const dispatch = useDispatch();
@@ -28,7 +30,7 @@ export default function ResultScreen({ navigation }) {
   function handlePlayAgain() {
     dispatch(resetGame());
     dispatch(startGame({ playerCount, isAIMode }));
-    navigation.navigate('Game');
+    showInterstitialAd(() => navigation.navigate('Game'));
   }
 
   function handleGoHome() {
@@ -85,6 +87,7 @@ export default function ResultScreen({ navigation }) {
             />
           </View>
         </View>
+        <AppBannerAd />
       </View>
     </SafeAreaView>
   );

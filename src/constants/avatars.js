@@ -14,5 +14,5 @@ export const AVATARS = [
   { id: '13', emoji: '🐶', label: 'Dog' },
   { id: '14', emoji: '🐭', label: 'Mouse' },
   { id: '15', emoji: '🦉', label: 'Owl' },
-  { id: '16', emoji: '🐷', label: 'Pig' },
+  { id: '16', emoji: '🐯', label: 'Tiger' },
 ];
