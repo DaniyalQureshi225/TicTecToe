@@ -73,6 +73,7 @@ export default function SplashScreen({ navigation }) {
         <Animated.Text style={[styles.tagline, subtitleStyle]}>
           Get 5 in a row to win!
         </Animated.Text>
+        <Text style={styles.developerText}>Daniyal Qureshi</Text>
       </View>
     </SafeAreaView>
   );
@@ -111,5 +112,11 @@ const styles = StyleSheet.create({
     color: '#FFFFFFB0',
     marginTop: 16,
     fontStyle: 'italic',
+  },
+  developerText: {
+    fontSize: 25,
+    color: '#FFFFFFB0',
+    marginTop: 200,
+    fontWeight: 'bold',
   },
 });

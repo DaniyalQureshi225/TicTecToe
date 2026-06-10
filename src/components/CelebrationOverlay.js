@@ -1,13 +1,11 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, StyleSheet, Dimensions } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
   withRepeat,
   withTiming,
   withSequence,
-  withDelay,
 } from 'react-native-reanimated';
 
 const { width } = Dimensions.get('window');
@@ -63,16 +61,12 @@ function ConfettiPiece({ index }) {
   );
 }
 
-export default function CelebrationOverlay({ winnerName }) {
+export default function CelebrationOverlay() {
   return (
     <View style={styles.container} pointerEvents="none">
       {Array.from({ length: 40 }).map((_, i) => (
         <ConfettiPiece key={i} index={i} />
       ))}
-      <View style={styles.winnerBanner}>
-        <Text style={styles.trophy}>🏆</Text>
-        <Text style={styles.winnerText}>{winnerName} Wins!</Text>
-      </View>
     </View>
   );
 }
@@ -85,30 +79,5 @@ const styles = StyleSheet.create({
   confetti: {
     position: 'absolute',
     top: -20,
-  },
-  winnerBanner: {
-    position: 'absolute',
-    top: '40%',
-    alignSelf: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    borderRadius: 24,
-    paddingHorizontal: 32,
-    paddingVertical: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 10,
-  },
-  trophy: {
-    fontSize: 64,
-    marginBottom: 8,
-  },
-  winnerText: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#2D3436',
-    textAlign: 'center',
   },
 });
