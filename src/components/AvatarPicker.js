@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
 import { AVATARS } from '../constants/avatars';
 
-export default function AvatarPicker({ selected, onSelect }) {
+export default function AvatarPicker({ selected, onSelect, usedAvatars }) {
   return (
     <View style={styles.container}>
       <Text style={styles.label}>Choose Avatar</Text>
@@ -13,15 +13,21 @@ export default function AvatarPicker({ selected, onSelect }) {
         scrollEnabled={false}
         renderItem={({ item }) => {
           const isSelected = selected === item.id;
+          const isUsed = usedAvatars && usedAvatars.includes(item.id);
+          const disabled = isUsed && !isSelected;
           return (
             <TouchableOpacity
-              onPress={() => onSelect(item.id)}
+              onPress={() => !disabled && onSelect(item.id)}
               style={[
                 styles.avatarItem,
                 isSelected && styles.avatarSelected,
+                disabled && styles.avatarDisabled,
               ]}>
-              <Text style={styles.avatarEmoji}>{item.emoji}</Text>
+              <Text style={[styles.avatarEmoji, disabled && styles.avatarEmojiDisabled]}>
+                {item.emoji}
+              </Text>
               {isSelected && <View style={styles.checkBadge} />}
+              {disabled && <View style={styles.usedBadge} />}
             </TouchableOpacity>
           );
         }}
@@ -55,7 +61,14 @@ const styles = StyleSheet.create({
     borderColor: '#6C63FF',
     backgroundColor: '#6C63FF20',
   },
+  avatarDisabled: {
+    opacity: 0.35,
+    borderColor: '#DFE6E9',
+  },
   avatarEmoji: {
+    fontSize: 28,
+  },
+  avatarEmojiDisabled: {
     fontSize: 28,
   },
   checkBadge: {
@@ -66,5 +79,14 @@ const styles = StyleSheet.create({
     height: 10,
     borderRadius: 5,
     backgroundColor: '#6C63FF',
+  },
+  usedBadge: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#FF6584',
   },
 });

@@ -12,6 +12,7 @@ import { toggleSound } from '../redux/soundSlice';
 import SoundManager from '../utils/SoundManager';
 import AppBannerAd from '../components/AppBannerAd';
 import AnimatedButton from '../components/AnimatedButton';
+import { ENUM } from '../utils/enum';
 
 function MenuItem({ title, onPress, color, delay, icon }) {
   const translateY = useSharedValue(50);
@@ -82,7 +83,7 @@ export default function HomeScreen({ navigation }) {
 
         <View style={styles.header}>
           <Text style={styles.emoji}>🎮</Text>
-          <Text style={styles.title}>TicTacToe</Text>
+          <Text style={styles.title}>{ENUM.appName}</Text>
           <Text style={styles.subtitle}>for Four Players</Text>
         </View>
 

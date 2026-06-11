@@ -35,9 +35,12 @@ export default function PlayerSetupScreen({ navigation }) {
     }
   }, [gameMode]);
 
+  const usedAvatars = players.map(p => p.avatar);
+
   function handleAddPlayer() {
     if (!playerName.trim() || !selectedAvatar) return;
     if (players.length >= 4) return;
+    if (usedAvatars.includes(selectedAvatar)) return;
     dispatch(addPlayer({ name: playerName.trim(), avatar: selectedAvatar }));
     setPlayerName('');
     setSelectedAvatar(null);
@@ -121,6 +124,7 @@ export default function PlayerSetupScreen({ navigation }) {
               <AvatarPicker
                 selected={selectedAvatar}
                 onSelect={setSelectedAvatar}
+                usedAvatars={usedAvatars}
               />
               <AnimatedButton
                 title="Add Player"

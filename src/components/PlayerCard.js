@@ -23,9 +23,7 @@ export default function PlayerCard({
         <Text style={[styles.name, compact && styles.compactText]} numberOfLines={1}>
           {player.name}
         </Text>
-        {!compact && (
-          <Text style={styles.symbol}>Symbol: {player.symbol}</Text>
-        )}
+
       </View>
       {onRemove && (
         <TouchableOpacity onPress={() => onRemove(player.id)} style={styles.removeBtn}>

@@ -116,6 +116,8 @@ export function isAdAvailable() {
   return nativeAdsAvailable;
 }
 
+let interstitialTimedOut = false;
+
 export function showInterstitialAd(onDismiss) {
   if (!nativeAdsAvailable) {
     if (onDismiss) onDismiss();
@@ -128,6 +130,7 @@ export function showInterstitialAd(onDismiss) {
     const unsubLoaded = interstitial.addAdEventListener(AdEventType.CLOSED, () => {
       interstitialInstance = null;
       interstitialLoadAttempted = false;
+      interstitialTimedOut = false;
       unsubLoaded();
       unsubError();
       if (onDismiss) onDismiss();
@@ -135,14 +138,28 @@ export function showInterstitialAd(onDismiss) {
     const unsubError = interstitial.addAdEventListener(AdEventType.ERROR, () => {
       interstitialInstance = null;
       interstitialLoadAttempted = false;
+      interstitialTimedOut = false;
       unsubLoaded();
       unsubError();
       if (onDismiss) onDismiss();
     });
     interstitial.show();
-  } else {
+  } else if (!interstitialTimedOut) {
+    interstitialTimedOut = true;
     loadInterstitial();
-    setTimeout(() => showInterstitialAd(onDismiss), 1000);
+    setTimeout(() => {
+      interstitialTimedOut = false;
+      const retry = getInterstitial();
+      if (retry && retry.loaded) {
+        showInterstitialAd(onDismiss);
+      } else {
+        interstitialInstance = null;
+        interstitialLoadAttempted = false;
+        if (onDismiss) onDismiss();
+      }
+    }, 3000);
+  } else {
+    if (onDismiss) onDismiss();
   }
 }
 

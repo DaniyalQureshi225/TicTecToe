@@ -74,7 +74,6 @@ export default function CelebrationOverlay() {
 const styles = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFillObject,
-    zIndex: 100,
   },
   confetti: {
     position: 'absolute',

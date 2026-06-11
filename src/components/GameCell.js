@@ -16,7 +16,6 @@ try {
 }
 
 const PLAYER_COLORS = ['#FF6B6B', '#4ECDC4', '#fe07eaff', '#A29BFE'];
-const PLAYER_SYMBOLS = ['X', 'O', '△', '□'];
 
 export default function GameCell({
   row,
@@ -26,6 +25,7 @@ export default function GameCell({
   isWinCell,
   disabled,
   cellSize,
+  avatarEmoji,
 }) {
   const scale = useSharedValue(1);
   const winPulse = useSharedValue(1);
@@ -60,7 +60,6 @@ export default function GameCell({
   const bgColor = value
     ? PLAYER_COLORS[symbolIndex] + '30'
     : '#FFFFFF';
-  const borderColor = isWinCell ? '#00FF88' : '#B2BEC3';
 
   return (
     <AnimatedTouchable
@@ -72,18 +71,14 @@ export default function GameCell({
           width: cellSize,
           height: cellSize,
           backgroundColor: isWinCell ? '#00FF8840' : bgColor,
-          borderColor: isWinCell ? '#00FF88' : borderColor,
+          borderColor: isWinCell ? '#00FF88' : '#B2BEC3',
           borderWidth: isWinCell ? 2 : 1,
         },
         animatedStyle,
       ]}>
       {value > 0 && (
-        <Text
-          style={[
-            styles.symbol,
-            { color: PLAYER_COLORS[symbolIndex], fontSize: cellSize * 0.5 },
-          ]}>
-          {PLAYER_SYMBOLS[symbolIndex]}
+        <Text style={[styles.symbol, { fontSize: cellSize * 0.55 }]}>
+          {avatarEmoji || '👤'}
         </Text>
       )}
     </AnimatedTouchable>

@@ -9,6 +9,7 @@ import Animated, {
   withSequence,
 } from 'react-native-reanimated';
 import SoundManager from '../utils/SoundManager';
+import { ENUM } from '../utils/enum';
 
 export default function SplashScreen({ navigation }) {
   const scale = useSharedValue(0);
@@ -65,7 +66,7 @@ export default function SplashScreen({ navigation }) {
           </Animated.View>
         </Animated.View>
         <Animated.Text style={[styles.title, bounceStyle]}>
-          TicTacToe
+          {ENUM.appName}
         </Animated.Text>
         <Animated.Text style={[styles.subtitle, subtitleStyle]}>
           for Four Players

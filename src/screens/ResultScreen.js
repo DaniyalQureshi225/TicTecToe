@@ -41,10 +41,6 @@ export default function ResultScreen({ navigation }) {
   return (
     <SafeAreaView edges={['top', 'bottom', 'left', 'right']} style={styles.safeArea}>
       <View style={styles.container}>
-        {isWon && winnerPlayer && (
-          <CelebrationOverlay winnerName={winnerPlayer.name} />
-        )}
-
         <View style={styles.content}>
           <View style={styles.resultCard}>
             {isDraw ? (
@@ -88,6 +84,9 @@ export default function ResultScreen({ navigation }) {
           </View>
         </View>
         <AppBannerAd />
+        {isWon && winnerPlayer && (
+          <CelebrationOverlay />
+        )}
       </View>
     </SafeAreaView>
   );
@@ -101,7 +100,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 32,
-    zIndex: 10,
   },
   resultCard: {
     backgroundColor: '#FFFFFF',

@@ -29,6 +29,7 @@ import SoundManager from '../utils/SoundManager';
 import { onGameFinished } from '../services/AdManager';
 import GameCell from '../components/GameCell';
 import AnimatedButton from '../components/AnimatedButton';
+import { ENUM } from '../utils/enum';
 
 const CELL_GAP = 2;
 
@@ -172,6 +173,12 @@ export default function GameScreen({ navigation }) {
     dispatch(startGame({ playerCount, isAIMode }));
   }
 
+  const playerAvatarMap = {};
+  players.forEach((p, idx) => {
+    const a = AVATARS.find(av => av.id === p.avatar);
+    playerAvatarMap[idx + 1] = a ? a.emoji : '👤';
+  });
+
   const currentAvatar = currentPlayer
     ? AVATARS.find(a => a.id === currentPlayer.avatar)
     : null;
@@ -180,7 +187,7 @@ export default function GameScreen({ navigation }) {
     <SafeAreaView edges={['top', 'left', 'right']} style={styles.safeArea}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.gameTitle}>🎮 TicTacToe</Text>
+          <Text style={styles.gameTitle}>🎮 {ENUM.appName}</Text>
           <AnimatedButton
             title="Reset"
             onPress={handleReset}
@@ -198,7 +205,6 @@ export default function GameScreen({ navigation }) {
             <Text style={styles.turnText}>
               {currentPlayer.name}'s Turn
             </Text>
-            <Text style={styles.turnSymbol}>({currentPlayer.symbol})</Text>
           </Animated.View>
         )}
 
@@ -225,6 +231,7 @@ export default function GameScreen({ navigation }) {
                         isWinCell={winCells.some(([r, c]) => r === rowIdx && c === colIdx)}
                         disabled={gameStatus !== GAME_STATUS.PLAYING}
                         cellSize="100%"
+                        avatarEmoji={cell > 0 ? playerAvatarMap[cell] : null}
                       />
                     </View>
                   ))}
