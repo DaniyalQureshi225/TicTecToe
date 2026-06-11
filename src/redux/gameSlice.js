@@ -11,6 +11,7 @@ const initialState = {
   moveHistory: [],
   playerCount: 0,
   isAIMode: false,
+  roundScores: {},
 };
 
 const gameSlice = createSlice({
@@ -49,8 +50,23 @@ const gameSlice = createSlice({
     setGameDraw(state) {
       state.gameStatus = GAME_STATUS.DRAW;
     },
-    resetGame() {
-      return { ...initialState };
+    resetGame(state) {
+      state.board = createEmptyBoard();
+      state.currentPlayerIndex = 0;
+      state.gameStatus = GAME_STATUS.IDLE;
+      state.winner = null;
+      state.winCells = [];
+      state.moveHistory = [];
+      state.playerCount = 0;
+      state.isAIMode = false;
+    },
+    incrementScore(state, action) {
+      const playerId = action.payload;
+      const current = state.roundScores[playerId] || 0;
+      state.roundScores[playerId] = current + 1;
+    },
+    resetScores(state) {
+      state.roundScores = {};
     },
     loadGameState(state, action) {
       return { ...state, ...action.payload };
@@ -65,6 +81,8 @@ export const {
   setGameWon,
   setGameDraw,
   resetGame,
+  incrementScore,
+  resetScores,
   loadGameState,
 } = gameSlice.actions;
 export default gameSlice.reducer;

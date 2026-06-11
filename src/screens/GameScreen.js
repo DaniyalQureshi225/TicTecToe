@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -19,17 +19,17 @@ import {
   setGameDraw,
   resetGame,
   startGame,
+  incrementScore,
 } from '../redux/gameSlice';
 import { recordWin, recordLoss, recordDraw } from '../redux/leaderboardSlice';
 import { checkWin, isBoardFull } from '../utils/winDetection';
 import { getAIMove } from '../utils/aiPlayer';
-import { BOARD_SIZE, GAME_STATUS } from '../constants/gameConfig';
+import { GAME_STATUS } from '../constants/gameConfig';
 import { AVATARS } from '../constants/avatars';
 import SoundManager from '../utils/SoundManager';
 import { onGameFinished } from '../services/AdManager';
 import GameCell from '../components/GameCell';
-import AnimatedButton from '../components/AnimatedButton';
-import { ENUM } from '../utils/enum';
+import GameHeader from '../components/GameHeader';
 
 const CELL_GAP = 2;
 
@@ -42,10 +42,11 @@ export default function GameScreen({ navigation }) {
   const isAIMode = useSelector(state => state.game.isAIMode);
   const playerCount = useSelector(state => state.game.playerCount);
   const players = useSelector(state => state.players.list);
-  const leaderRecords = useSelector(state => state.leaderboard.records);
+  const roundScores = useSelector(state => state.game.roundScores);
 
   const aiTimeoutRef = useRef(null);
   const hasNavigatedRef = useRef(false);
+  const isAiThinkingRef = useRef(false);
 
   useEffect(() => {
     hasNavigatedRef.current = false;
@@ -74,14 +75,6 @@ export default function GameScreen({ navigation }) {
     transform: [{ scale: turnScale.value }],
   }));
 
-  const getRecord = useCallback(
-    playerId => {
-      const r = leaderRecords.find(rec => rec.playerId === playerId);
-      return r || { wins: 0, losses: 0, draws: 0, totalGames: 0 };
-    },
-    [leaderRecords],
-  );
-
   function handleCellPress(row, col) {
     if (gameStatus !== GAME_STATUS.PLAYING) {
       SoundManager.playError();
@@ -92,7 +85,11 @@ export default function GameScreen({ navigation }) {
       return;
     }
     if (isAIMode && currentPlayerIndex !== 0) return;
+    if (isAiThinkingRef.current) return;
 
+    if (isAIMode) {
+      isAiThinkingRef.current = true;
+    }
     executeMove(row, col);
   }
 
@@ -108,6 +105,7 @@ export default function GameScreen({ navigation }) {
       dispatch(setGameWon({ winner: winResult.winner, cells: winResult.cells }));
 
       const winnerPlayerId = winResult.winner;
+      dispatch(incrementScore(winnerPlayerId));
       dispatch(recordWin(winnerPlayerId));
 
       players.forEach(p => {
@@ -160,10 +158,12 @@ export default function GameScreen({ navigation }) {
         if (aiMove) {
           executeMove(aiMove[0], aiMove[1]);
         }
+        isAiThinkingRef.current = false;
       }, 500);
     }
     return () => {
       if (aiTimeoutRef.current) clearTimeout(aiTimeoutRef.current);
+      isAiThinkingRef.current = false;
     };
   }, [currentPlayerIndex, gameStatus, isAIMode]);
 
@@ -171,6 +171,11 @@ export default function GameScreen({ navigation }) {
     SoundManager.playButtonClick();
     dispatch(resetGame());
     dispatch(startGame({ playerCount, isAIMode }));
+  }
+
+  function handleBack() {
+    SoundManager.playButtonClick();
+    navigation.navigate('Home');
   }
 
   const playerAvatarMap = {};
@@ -186,16 +191,13 @@ export default function GameScreen({ navigation }) {
   return (
     <SafeAreaView edges={['top', 'left', 'right']} style={styles.safeArea}>
       <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.gameTitle}>🎮 {ENUM.appName}</Text>
-          <AnimatedButton
-            title="Reset"
-            onPress={handleReset}
-            color="#FF6584"
-            size="sm"
-            style={{ paddingHorizontal: 16 }}
-          />
-        </View>
+        <GameHeader
+          players={players}
+          scores={roundScores}
+          currentPlayerIndex={currentPlayerIndex}
+          onBack={handleBack}
+          onReset={handleReset}
+        />
 
         {currentPlayer && (
           <Animated.View style={[styles.turnIndicator, turnAnimStyle]}>
@@ -210,13 +212,12 @@ export default function GameScreen({ navigation }) {
 
         <ScrollView
           contentContainerStyle={styles.boardContainer}
-          scrollEnabled={false} // Prevents scrolling since a 10x10 fits fully in portrait
+          scrollEnabled={false}
           showsVerticalScrollIndicator={false}>
 
           <View style={styles.boardWrapper}>
             <View style={styles.board}>
               {board.map((row, rowIdx) => (
-                /* Explicit Row Wrapper forces exactly 10 blocks across, cleanly balancing the grid */
                 <View key={`row-${rowIdx}`} style={styles.boardRow}>
                   {row.map((cell, colIdx) => (
                     <View
@@ -241,29 +242,6 @@ export default function GameScreen({ navigation }) {
           </View>
 
         </ScrollView>
-
-        <View style={styles.scoresRow}>
-          {players.map((p, idx) => {
-            const rec = getRecord(p.id);
-            const isActive = idx === currentPlayerIndex;
-            const pAvatar = AVATARS.find(a => a.id === p.avatar);
-            return (
-              <View
-                key={p.id}
-                style={[styles.scoreCard, isActive && styles.scoreCardActive]}>
-                <Text style={styles.scoreEmoji}>
-                  {pAvatar ? pAvatar.emoji : '👤'}
-                </Text>
-                <Text style={styles.scoreName} numberOfLines={1}>
-                  {p.name}
-                </Text>
-                <Text style={styles.scoreStat}>
-                  W:{rec.wins} L:{rec.losses}
-                </Text>
-              </View>
-            );
-          })}
-        </View>
       </View>
     </SafeAreaView>
   );
@@ -275,15 +253,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0F2F5',
   },
   container: { flex: 1 },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 4,
-  },
-  gameTitle: { fontSize: 22, fontWeight: '800', color: '#2D3436' },
   turnIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -293,19 +262,17 @@ const styles = StyleSheet.create({
   },
   turnEmoji: { fontSize: 24 },
   turnText: { fontSize: 16, fontWeight: '700', color: '#6C63FF' },
-  turnSymbol: { fontSize: 16, fontWeight: '600', color: '#636E72' },
 
-  // Structured Grid System
   boardContainer: {
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 12
+    paddingHorizontal: 12,
   },
   boardWrapper: {
     width: '100%',
-    maxWidth: 480, // Keeps the layout perfect on larger tablets
-    aspectRatio: 1, // Ensures a clean, uniform box
+    maxWidth: 480,
+    aspectRatio: 1,
   },
   board: {
     flex: 1,
@@ -314,25 +281,10 @@ const styles = StyleSheet.create({
     padding: 2,
   },
   boardRow: {
-    flex: 1, // Equally breaks down the container height into 10 sections
+    flex: 1,
     flexDirection: 'row',
   },
   cellWrapper: {
-    flex: 1, // Equally breaks down the row width into 10 sections
+    flex: 1,
   },
-
-  scoresRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    paddingHorizontal: 8,
-    paddingVertical: 8,
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderTopColor: '#DFE6E9',
-  },
-  scoreCard: { alignItems: 'center', padding: 6, borderRadius: 12, minWidth: 60 },
-  scoreCardActive: { backgroundColor: '#6C63FF20' },
-  scoreEmoji: { fontSize: 20 },
-  scoreName: { fontSize: 11, fontWeight: '700', color: '#2D3436', marginTop: 2 },
-  scoreStat: { fontSize: 10, color: '#636E72' },
 });

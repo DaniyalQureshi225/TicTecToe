@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { addPlayer, removePlayer, resetPlayers } from '../redux/playersSlice';
-import { startGame } from '../redux/gameSlice';
+import { startGame, resetScores } from '../redux/gameSlice';
 import { setLastGameMode } from '../redux/soundSlice';
 import { AVATARS } from '../constants/avatars';
 import SoundManager from '../utils/SoundManager';
@@ -61,6 +61,7 @@ export default function PlayerSetupScreen({ navigation }) {
     }
     const isAIMode = gameMode === 1;
     dispatch(setLastGameMode(gameMode));
+    dispatch(resetScores());
     dispatch(startGame({ playerCount, isAIMode }));
     showInterstitialAd(() => navigation.navigate('Game'));
   }
