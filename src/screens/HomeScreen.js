@@ -72,10 +72,9 @@ export default function HomeScreen({ navigation }) {
         <TouchableOpacity
           style={styles.soundToggle}
           onPress={handleToggleSound}
-          activeOpacity={0.7}>
-          <Text style={styles.soundIcon}>
-            {soundEnabled ? '🔊' : '🔇'}
-          </Text>
+          activeOpacity={0.7}
+        >
+          <Text style={styles.soundIcon}>{soundEnabled ? '🔊' : '🔇'}</Text>
           <Text style={styles.soundLabel}>
             Sound {soundEnabled ? 'ON' : 'OFF'}
           </Text>
@@ -140,13 +139,23 @@ const styles = StyleSheet.create({
   soundLabel: { fontSize: 13, fontWeight: '600', color: '#2D3436' },
   header: { alignItems: 'center', marginBottom: 48 },
   emoji: { fontSize: 72, marginBottom: 8 },
-  title: { fontSize: 36, fontWeight: '800', color: '#2D3436', letterSpacing: 1 },
+  title: {
+    fontSize: 36,
+    fontWeight: '800',
+    color: '#2D3436',
+    letterSpacing: 1,
+  },
   subtitle: { fontSize: 18, color: '#636E72', marginTop: 4 },
   menu: { gap: 16 },
   menuItemContainer: { marginBottom: 4 },
   menuButton: { height: 60, borderRadius: 20 },
   menuButtonText: { fontSize: 18 },
-  footer: { textAlign: 'center', color: '#636E72', marginTop: 48, fontSize: 15 },
+  footer: {
+    textAlign: 'center',
+    color: '#636E72',
+    marginTop: 48,
+    fontSize: 15,
+  },
   bannerContainer: {
     position: 'absolute',
     bottom: 0,
