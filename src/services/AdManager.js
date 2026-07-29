@@ -28,15 +28,15 @@ try {
  */
 
 const AD_UNIT_ID_BANNER_HOME = nativeAdsAvailable
-  ? Platform.select({ ios: TestIds.BANNER, android: TestIds.BANNER })
+  ? 'ca-app-pub-6134616462467323/7241591578'
   : '';
 
 const AD_UNIT_ID_BANNER_LEADERBOARD = nativeAdsAvailable
-  ? Platform.select({ ios: TestIds.BANNER, android: TestIds.BANNER })
+  ? 'ca-app-pub-6134616462467323/7241591578'
   : '';
 
 const AD_UNIT_ID_INTERSTITIAL = nativeAdsAvailable
-  ? Platform.select({ ios: TestIds.INTERSTITIAL, android: TestIds.INTERSTITIAL })
+  ? 'ca-app-pub-6134616462467323/9821255519'
   : '';
 
 let interstitialInstance = null;
@@ -47,9 +47,12 @@ let interstitialLoadAttempted = false;
 function getInterstitial() {
   if (!nativeAdsAvailable) return null;
   if (!interstitialInstance) {
-    interstitialInstance = InterstitialAd.createForAdRequest(AD_UNIT_ID_INTERSTITIAL, {
-      requestNonPersonalizedAdsOnly: true,
-    });
+    interstitialInstance = InterstitialAd.createForAdRequest(
+      AD_UNIT_ID_INTERSTITIAL,
+      {
+        requestNonPersonalizedAdsOnly: true,
+      },
+    );
   }
   return interstitialInstance;
 }
@@ -127,22 +130,28 @@ export function showInterstitialAd(onDismiss) {
   const interstitial = getInterstitial();
 
   if (interstitial && interstitial.loaded) {
-    const unsubLoaded = interstitial.addAdEventListener(AdEventType.CLOSED, () => {
-      interstitialInstance = null;
-      interstitialLoadAttempted = false;
-      interstitialTimedOut = false;
-      unsubLoaded();
-      unsubError();
-      if (onDismiss) onDismiss();
-    });
-    const unsubError = interstitial.addAdEventListener(AdEventType.ERROR, () => {
-      interstitialInstance = null;
-      interstitialLoadAttempted = false;
-      interstitialTimedOut = false;
-      unsubLoaded();
-      unsubError();
-      if (onDismiss) onDismiss();
-    });
+    const unsubLoaded = interstitial.addAdEventListener(
+      AdEventType.CLOSED,
+      () => {
+        interstitialInstance = null;
+        interstitialLoadAttempted = false;
+        interstitialTimedOut = false;
+        unsubLoaded();
+        unsubError();
+        if (onDismiss) onDismiss();
+      },
+    );
+    const unsubError = interstitial.addAdEventListener(
+      AdEventType.ERROR,
+      () => {
+        interstitialInstance = null;
+        interstitialLoadAttempted = false;
+        interstitialTimedOut = false;
+        unsubLoaded();
+        unsubError();
+        if (onDismiss) onDismiss();
+      },
+    );
     interstitial.show();
   } else if (!interstitialTimedOut) {
     interstitialTimedOut = true;
